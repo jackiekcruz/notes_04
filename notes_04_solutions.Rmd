@@ -1,7 +1,7 @@
 ---
 title: "Data visualization II"
-author: ""
-date: ""
+author: "Shawn Santo"
+date: "01/29/2021"
 output: html_document
 editor_options: 
   chunk_output_type: console
