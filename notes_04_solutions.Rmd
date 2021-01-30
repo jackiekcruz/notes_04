@@ -1,0 +1,214 @@
+---
+title: "Data visualization II"
+author: ""
+date: ""
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Main ideas
+
+- There are different types of variables. 
+- Visualizations and summaries of variables must be consistent with the 
+  variable type.
+
+## Lecture notes and exercises
+
+Run the following code in the **console** to configure `git`. Fill in your 
+name and the email address associated with your GitHub account.
+
+```{r eval = FALSE}
+library(usethis)
+use_git_config(user.name= "your name", user.email="your email")
+```
+
+Next load the `tidyverse` package. 
+
+```{r message = FALSE}
+library(tidyverse)
+```
+
+There are two types of variables **numeric** and **categorical**.
+
+### Types of variables
+
+Numerical variables can be classified as either **continuous** or **discrete**. 
+Continuous numeric variables have an infinite number of values between any 
+two values. Discrete numeric variables have a countable number of values.
+
+- height
+- number of siblings
+
+Categorical variables can be classified as either **nominal** or **ordinal**. 
+Ordinal variables have a natural ordering.
+
+- hair color
+- education
+
+### Numeric variables
+
+To describe the distribution of a numeric we will use the properties below.
+
+- shape
+  - skewness: right-skewed, left-skewed, symmetric
+  - modality: unimodal, bimodal, multimodal, uniform
+- center: mean (`mean()`), median (`median()`)
+- spread: range (`range()`), standard deviation (`sd()`), interquartile range (`IQR()`)
+- outliers: observations outside the pattern of the data
+
+We will continue our investigation of home prices in Minneapolis, Minnesota.
+
+```{r load-data, message = FALSE}
+mn_homes <- read_csv("data/mn_homes.csv")
+```
+
+Add a `glimpse()` to the code chunk below and identify the following variables 
+as numeric continuous, numeric discrete, categorical ordinal, or categorical
+nominal. 
+
+- **area**: numeric continuous
+- **beds**: numeric discrete
+- **community**: categorical
+
+```{r glimpse-data}
+glimpse(mn_homes)
+```
+
+We can use a **histogram** to summarize a single numeric variable.
+
+```{r histogram}
+ggplot(data = mn_homes, 
+       mapping = aes(x = salesprice)) + 
+   geom_histogram(bins = 25, fill = "lightblue", color = "grey")
+```
+
+A **density plot** is another option. We just connect the boxes in a histogram
+with a smooth curve.
+
+```{r density-plot}
+ggplot(data = mn_homes, 
+       mapping = aes(x = salesprice)) + 
+   geom_density(fill = "darkgreen", alpha = 0.5) +
+  theme_minimal()
+```
+
+Side-by-side **boxplots** are helpful to visualize the distribution of a numeric
+variable across the levels of a categorical variable.
+
+```{r boxplots}
+ggplot(data = mn_homes, mapping = aes(x = community, y = salesprice)) + 
+  geom_boxplot(color = "darkviolet", fill = "grey60") + 
+  coord_flip() +
+  theme_bw()
+
+```
+
+**Question:** What is `coord_flip()` doing in the code chunk above? Try removing
+it to see.
+
+Function `coord_flip()` transposes the `x` and `y` axes. Be careful with
+`labs()`.
+
+### Categorical variables
+
+**Bar plots** allow us to visualize categorical variables.
+
+```{r bar-plot}
+ggplot(data = mn_homes) + 
+  geom_bar(mapping = aes(x = reorder(community, community, length))) + 
+  coord_flip() +
+  labs(x = "Community", y = "Count") +
+  theme_light(base_size = 20)
+```
+
+**Segmented bar plots** can be used to visualize two categorical variables.
+
+```{r segmented-bar-plot}
+ggplot(data = mn_homes, mapping = aes(x = community, fill = fireplace)) + 
+  geom_bar() +
+  scale_fill_manual(values = c("purple", "orange")) +
+  coord_flip()
+```
+
+```{r segmented-bar-plot-fill}
+ggplot(data = mn_homes, mapping = aes(x = community, fill = fireplace)) + 
+  geom_bar(position = "fill") + 
+  scale_fill_manual(values = c("purple", "orange")) +
+  coord_flip()
+```
+
+**Question:** Which of the above two visualizations should be preferred?
+
+The first plot is helpful for within community comparison of having a fireplace
+or not. The second plot makes it easy for between community comparison of
+having a fireplace or not.
+
+
+There is something wrong with each of the plots below. Run the code for each 
+plot, read the error, then identify and fix the problem.
+
+```{r fix-errors, eval = FALSE}
+ggplot(data = mn_homes) + 
+  geom_point(mapping = aes(x = lotsize, y = salesprice,
+                           shape = 21, size = .85))
+
+ggplot(data = mn_homes) + 
+  geom_point(x = lotsize, y = area, shape = 21, size = .85)
+
+ggplot(data = mn_homes) +
+  geom_point(mapping = aes(x = lotsize, y = area),
+             color = community, size = .85)
+
+ggplot(data = mn_homes) +
+  geom_point(mapping = aes(x = 1otsize, y = area))
+```
+
+```{r solutions, eval = FALSE}
+ggplot(data = mn_homes) + 
+  geom_point(mapping = aes(x = lotsize, y = salesprice),
+                           shape = 21, size = .85)
+
+ggplot(data = mn_homes) + 
+  geom_point(aes(x = lotsize, y = area), shape = 21, size = .85)
+
+ggplot(data = mn_homes) +
+  geom_point(mapping = aes(x = lotsize, y = area, color = community), size = .85)
+
+ggplot(data = mn_homes) +
+  geom_point(mapping = aes(x = lotsize, y = area))
+```
+
+General principles for effective data visualization
+
+- keep it simple
+- use color effectively
+- tell a story
+
+Take a look at https://github.com/GraphicsPrinciples/CheatSheet/blob/master/NVSCheatSheet.pdf
+for how to think through creating an effective visualization.
+
+## Practice
+
+(1) Modify the code outline to create a faceted histogram examining the 
+    distribution of year built within each community. When you are finished, 
+    remove `eval = FALSE` and knit the file to see the changes.
+
+```{r eval = FALSE}
+ggplot(data = mn_homes, mapping = aes(x = yearbuilt)) +
+  geom_histogram(binwidth = 5) +
+  facet_wrap(~community) +
+  labs(x = "Year", y = "Count", title = "Home ages in Minneapolis, MN", 
+      subtitle = "Faceted by community")
+```
+
+## Additional Resources
+
+- https://raw.githubusercontent.com/rstudio/cheatsheets/master/data-visualization-2.1.pdf
+- https://github.com/GraphicsPrinciples/CheatSheet/blob/master/NVSCheatSheet.pdf
+- https://ggplot2.tidyverse.org/
+- http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
+- https://medium.com/bbc-visual-and-data-journalism/how-the-bbc-visual-and-data-journalism-team-works-with-graphics-in-r-ed0b35693535
+- https://ggplot2-book.org/
+- https://ggplot2.tidyverse.org/reference/geom_histogram.html
+- https://rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf
